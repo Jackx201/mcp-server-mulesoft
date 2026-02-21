@@ -1,0 +1,154 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd       http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd       http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd       http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+    <!-- Configuración del HTTP Listener para recibir conexiones MCP -->
+    <http:listener-config basePath="/api" name="HTTP-Listener-config">
+        <http:listener-connection host="localhost" port="8080"></http:listener-connection>
+    </http:listener-config>
+    <!-- Configuración del Servidor MCP -->
+    <mcp:server-config name="Server" serverName="mule-mcp-server" serverVersion="1.0.0">
+        <mcp:streamable-http-server-connection listenerConfig="HTTP-Listener-config"></mcp:streamable-http-server-connection>
+    </mcp:server-config>
+    <!-- Configuración HTTP Request para conectar con JSONPlaceholder API -->
+    <http:request-config doc:name="HTTP Request configuration" name="JSONPlaceholder-Config">
+        <http:request-connection host="jsonplaceholder.typicode.com" port="443" protocol="HTTPS">
+            <tls:context>
+                <tls:trust-store insecure="true"></tls:trust-store>
+            </tls:context>
+        </http:request-connection>
+    </http:request-config>
+    <!--
+        HERRAMIENTA 1: get-all-posts
+        Obtiene todos los posts de JSONPlaceholder
+    -->
+    <flow name="get-all-posts-flow">
+        <mcp:tool-listener config-ref="Server" doc:name="get-all-posts" name="get-all-posts">
+            <mcp:description><![CDATA[Obtiene todos los posts del blog desde JSONPlaceholder API. No requiere parámetros.]]></mcp:description>
+            <mcp:parameters-schema><![CDATA[{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {}
+}]]></mcp:parameters-schema>
+            <mcp:responses>
+                <mcp:text-tool-response-content text="#[write(payload, 'application/json')]"></mcp:text-tool-response-content>
+            </mcp:responses>
+        </mcp:tool-listener>
+        <!-- Llamada HTTP a la API externa -->
+        <http:request config-ref="JSONPlaceholder-Config" doc:name="GET posts" method="GET" path="/posts"></http:request>
+        <!-- Transformación de respuesta -->
+        <ee:transform doc:name="Format response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+write({
+    total: sizeOf(payload),
+    posts: payload map {
+        id: $.id,
+        title: $.title,
+        body: $.body,
+        userId: $.userId
+    }
+}, "application/json")]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <!--
+        HERRAMIENTA 2: get-post-by-id
+        Obtiene un post específico por su ID
+    -->
+    <flow name="get-post-by-id-flow">
+        <mcp:tool-listener config-ref="Server" doc:name="get-post-by-id" name="get-post-by-id">
+            <mcp:description><![CDATA[Obtiene un post específico por su ID. Requiere el parámetro 'postId' (número del 1 al 100).]]></mcp:description>
+            <mcp:parameters-schema><![CDATA[{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "postId": {
+            "type": "integer",
+            "description": "ID del post a obtener (1-100)",
+            "minimum": 1,
+            "maximum": 100
+        }
+    },
+    "required": ["postId"]
+}]]></mcp:parameters-schema>
+            <mcp:responses>
+                <mcp:text-tool-response-content text="#[write(payload, 'application/json')]"></mcp:text-tool-response-content>
+            </mcp:responses>
+        </mcp:tool-listener>
+        <!-- Extraer postId del payload -->
+        <set-variable doc:name="Set postId variable" value="#[payload.postId]" variableName="postId"></set-variable>
+        <!-- Llamada HTTP con el ID del post -->
+        <http:request config-ref="JSONPlaceholder-Config" doc:name="GET post by ID" method="GET" path="#['/posts/' ++ vars.postId]"></http:request>
+        <!-- Transformación de respuesta -->
+        <ee:transform doc:name="Format post">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+write({
+    success: true,
+    post: {
+        id: payload.id,
+        title: payload.title,
+        body: payload.body,
+        userId: payload.userId
+    }
+}, "application/json")]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <!--
+        HERRAMIENTA 3: get-users
+        Obtiene todos los usuarios
+    -->
+    <flow name="get-users-flow">
+        <mcp:tool-listener config-ref="Server" doc:name="get-users" name="get-users">
+            <mcp:description><![CDATA[Obtiene la lista de todos los usuarios de JSONPlaceholder API. No requiere parámetros.]]></mcp:description>
+            <mcp:parameters-schema><![CDATA[{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {}
+}]]></mcp:parameters-schema>
+            <mcp:responses>
+                <mcp:text-tool-response-content text="#[write(payload, 'application/json')]"></mcp:text-tool-response-content>
+            </mcp:responses>
+        </mcp:tool-listener>
+        <!-- Llamada HTTP a la API -->
+        <http:request config-ref="JSONPlaceholder-Config" doc:name="GET users" method="GET" path="/users"></http:request>
+    </flow>
+    <!--
+        HERRAMIENTA 4: get-user-posts
+        Obtiene todos los posts de un usuario específico
+    -->
+    <flow name="get-user-posts-flow">
+        <mcp:tool-listener config-ref="Server" doc:name="get-user-posts" name="get-user-posts">
+            <mcp:description><![CDATA[Obtiene todos los posts escritos por un usuario específico. Requiere el parámetro 'userId' (número del 1 al 10).]]></mcp:description>
+            <mcp:parameters-schema><![CDATA[{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "userId": {
+            "type": "integer",
+            "description": "ID del usuario (1-10)",
+            "minimum": 1,
+            "maximum": 10
+        }
+    },
+    "required": ["userId"]
+}]]></mcp:parameters-schema>
+            <mcp:responses>
+                <mcp:text-tool-response-content text="#[write(payload, 'application/json')]"></mcp:text-tool-response-content>
+            </mcp:responses>
+        </mcp:tool-listener>
+        <!-- Extraer userId del payload -->
+        <set-variable doc:name="Set userId variable" value="#[payload.userId]" variableName="userId"></set-variable>
+        <!-- Llamada HTTP con query parameter -->
+        <http:request config-ref="JSONPlaceholder-Config" doc:name="GET user posts" method="GET" path="/posts">
+            <http:query-params><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:query-params>
+        </http:request>
+    </flow>
+</mule>
