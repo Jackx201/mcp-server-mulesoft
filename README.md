@@ -89,6 +89,7 @@ mvn mule:run
 **Opción B: Con Anypoint Studio**
 1. Importar el proyecto en Anypoint Studio
 2. Click derecho en el proyecto → Run As → Mule Application
+3. Añade este argumento a tu configuración de ejecución del projecto: -M-Dmule.http.service.implementation=NETTY
 
 
 ### 3. Verificar que el servidor está corriendo
@@ -389,3 +390,4 @@ PORT=6275 npx @modelcontextprotocol/inspector http://localhost:8080/api/sse
 
 
 Este es un proyecto educativo de código abierto. Siéntete libre de usar, modificar y distribuir.
+

@@ -28,28 +28,16 @@
     "properties": {}
 }]]></mcp:parameters-schema>
             <mcp:responses>
-                <mcp:text-tool-response-content text="#[write(payload, 'application/json')]"></mcp:text-tool-response-content>
+                <mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+                    <mcp:audience>
+                        <mcp:audience-item value="ASSISTANT"/>
+                    </mcp:audience>
+                </mcp:text-tool-response-content>
             </mcp:responses>
         </mcp:tool-listener>
         <!-- Llamada HTTP a la API externa -->
         <http:request config-ref="JSONPlaceholder-Config" doc:name="GET posts" method="GET" path="/posts"></http:request>
         <!-- Transformación de respuesta -->
-        <ee:transform doc:name="Format response">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output text/plain
----
-write({
-    total: sizeOf(payload),
-    posts: payload map {
-        id: $.id,
-        title: $.title,
-        body: $.body,
-        userId: $.userId
-    }
-}, "application/json")]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
     </flow>
     <!--
         HERRAMIENTA 2: get-post-by-id
@@ -72,7 +60,11 @@ write({
     "required": ["postId"]
 }]]></mcp:parameters-schema>
             <mcp:responses>
-                <mcp:text-tool-response-content text="#[write(payload, 'application/json')]"></mcp:text-tool-response-content>
+                <mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+                <mcp:audience >
+                    <mcp:audience-item value="ASSISTANT" />
+                </mcp:audience>
+                </mcp:text-tool-response-content>
             </mcp:responses>
         </mcp:tool-listener>
         <!-- Extraer postId del payload -->
@@ -80,22 +72,6 @@ write({
         <!-- Llamada HTTP con el ID del post -->
         <http:request config-ref="JSONPlaceholder-Config" doc:name="GET post by ID" method="GET" path="#['/posts/' ++ vars.postId]"></http:request>
         <!-- Transformación de respuesta -->
-        <ee:transform doc:name="Format post">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output text/plain
----
-write({
-    success: true,
-    post: {
-        id: payload.id,
-        title: payload.title,
-        body: payload.body,
-        userId: payload.userId
-    }
-}, "application/json")]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
     </flow>
     <!--
         HERRAMIENTA 3: get-users
@@ -110,7 +86,11 @@ write({
     "properties": {}
 }]]></mcp:parameters-schema>
             <mcp:responses>
-                <mcp:text-tool-response-content text="#[write(payload, 'application/json')]"></mcp:text-tool-response-content>
+                <mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+                    <mcp:audience>
+                        <mcp:audience-item value="ASSISTANT"/>
+                    </mcp:audience>
+                </mcp:text-tool-response-content>
             </mcp:responses>
         </mcp:tool-listener>
         <!-- Llamada HTTP a la API -->
@@ -137,7 +117,11 @@ write({
     "required": ["userId"]
 }]]></mcp:parameters-schema>
             <mcp:responses>
-                <mcp:text-tool-response-content text="#[write(payload, 'application/json')]"></mcp:text-tool-response-content>
+                <mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+                    <mcp:audience>
+                        <mcp:audience-item value="ASSISTANT"/>
+                    </mcp:audience>
+                </mcp:text-tool-response-content>
             </mcp:responses>
         </mcp:tool-listener>
         <!-- Extraer userId del payload -->
