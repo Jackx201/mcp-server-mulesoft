@@ -1,6 +1,6 @@
 {
 	"servers": {
-		"my-mcp-server-8fc99b99": {
+		"mulesoft-local-mcp": {
 			"url": "http://localhost:8080/mcp",
 			"type": "http"
 		}

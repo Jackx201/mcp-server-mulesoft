@@ -1,357 +1,286 @@
-# MCP Server MuleSoft - Proyecto de Aprendizaje
+# MCP Server MuleSoft — Template Project
 
+This is a small MCP (Model Context Protocol) test server built with MuleSoft to demonstrate how to configure and implement MCP servers that can be consumed by AI clients such as Claude or GitHub Copilot.
 
-Este es un servidor MCP (Model Context Protocol) de prueba creado con MuleSoft para entender cómo configurar y desarrollar servidores MCP que puedan ser consumidos por clientes de IA como Claude.
+## What is MCP?
 
+MCP (Model Context Protocol) is a protocol that standardizes how AI applications interact with external data sources and tools. An MCP server exposes "tools" that AI models can discover and call.
 
-## ¿Qué es MCP?
-
-
-MCP (Model Context Protocol) es un protocolo desarrollado por Anthropic que permite que aplicaciones de IA interactúen con diferentes fuentes de datos y herramientas de manera estandarizada. Un servidor MCP expone "herramientas" que los modelos de IA pueden descubrir y usar.
-
-
-## Arquitectura del Servidor
-
+## Server Architecture
 
 ```
-Cliente MCP (Claude Desktop / Inspector)
-   ↓ SSE (Server-Sent Events)
-Servidor MCP (MuleSoft - localhost:8080)
-   ↓ Tool Listeners (4 herramientas)
-Flows de MuleSoft
-   ↓ HTTP Requests
+MCP Client (Agent / Inspector)
+    ↓ SSE (Server-Sent Events)
+MCP Server (MuleSoft - localhost:8080)
+    ↓ Tool Listeners (4 tools exposed)
+MuleSoft flows
+    ↓ HTTP Requests
 JSONPlaceholder API (https://jsonplaceholder.typicode.com)
 ```
 
+## Available Tools
 
-## Herramientas Disponibles
-
-
-Este servidor expone 4 herramientas que interactúan con la API pública JSONPlaceholder:
-
+This server exposes four tools that interact with the public JSONPlaceholder API:
 
 ### 1. get-all-posts
-- **Descripción**: Obtiene todos los posts del blog
-- **Parámetros**: Ninguno
-- **Respuesta**: Lista de 100 posts con título, cuerpo y userId
-
+- Description: Retrieves all blog posts
+- Parameters: None
+- Response: List of 100 posts (title, body, userId)
 
 ### 2. get-post-by-id
-- **Descripción**: Obtiene un post específico por su ID
-- **Parámetros**:
- - `postId` (integer, 1-100): ID del post a obtener
-- **Respuesta**: Post individual con todos sus detalles
-
+- Description: Retrieves a single post by its ID
+- Parameters:
+   - `postId` (integer, 1-100): ID of the post to fetch
+- Response: Single post with full details
 
 ### 3. get-users
-- **Descripción**: Obtiene la lista de todos los usuarios
-- **Parámetros**: Ninguno
-- **Respuesta**: Lista de usuarios con nombre, email y ciudad
-
+- Description: Retrieves the list of all users
+- Parameters: None
+- Response: List of users (name, email, city)
 
 ### 4. get-user-posts
-- **Descripción**: Obtiene todos los posts de un usuario específico
-- **Parámetros**:
- - `userId` (integer): ID del usuario
-- **Respuesta**: Lista de posts del usuario especificado
+- Description: Retrieves all posts for a specific user
+- Parameters:
+   - `userId` (integer): ID of the user
+- Response: List of posts for the specified user
 
-
-## Requisitos Previos
-
+## Prerequisites
 
 - Java 17
 - Maven 3.x
-- MuleSoft Runtime 4.9.6 o superior
-- Anypoint Studio (opcional, para desarrollo visual)
+- Mule Runtime 4.9.6 or newer
+- Anypoint Studio (optional for visual development)
 
+## Setup & Run
 
-## Configuración y Ejecución
-
-
-### 1. Clonar o descargar el proyecto
-
+### 1. Open the project
 
 ```bash
 cd mcp-server-mulesoft
 ```
 
+### 2. Start the server
 
-### 2. Ejecutar el servidor
+Option A: Using Maven
 
-
-**Opción A: Con Maven**
 ```bash
 mvn clean install
 mvn mule:run
 ```
 
+Option B: Using Anypoint Studio
 
-**Opción B: Con Anypoint Studio**
-1. Importar el proyecto en Anypoint Studio
-2. Click derecho en el proyecto → Run As → Mule Application
-3. Añade este argumento a tu configuración de ejecución del projecto: -M-Dmule.http.service.implementation=NETTY
+1. Import the project into Anypoint Studio
+2. Right-click the project → Run As → Mule Application
+3. Add this VM arg to the run configuration: `-M-Dmule.http.service.implementation=NETTY`
 
-
-### 3. Verificar que el servidor está corriendo
-
+### 3. Verify the server is running
 
 ```bash
 curl http://localhost:8080/api/sse
 ```
 
+This command should keep the connection open (press Ctrl+C to exit).
 
-El comando debería mantener la conexión abierta (presiona Ctrl+C para salir).
+## Test with MCP Inspector
 
-
-## Probar con MCP Inspector
-
-
-El MCP Inspector es una herramienta visual para debuggear y probar servidores MCP.
-
-
-### Ejecutar el Inspector
-
+MCP Inspector is a visual tool to debug and test MCP servers.
 
 ```bash
 npx @modelcontextprotocol/inspector http://localhost:8080/sse
 ```
 
+The inspector will open a browser UI where you can:
+- View the four available tools
+- Try each tool with interactive inputs
+- Inspect JSON-RPC messages in real time
+- Debug errors and responses
 
-Esto abrirá automáticamente tu navegador con una interfaz donde podrás:
-- Ver las 4 herramientas disponibles
-- Probar cada herramienta con inputs interactivos
-- Ver los mensajes JSON-RPC en tiempo real
-- Debuggear errores y respuestas
-
-
-### Si el puerto está en uso
-
+If the inspector port is in use:
 
 ```bash
-# Matar el proceso anterior
+# Kill the previous process (UNIX example)
 kill $(lsof -ti:6274)
 
-
-# O usar un puerto diferente
+# Or use a different port
 PORT=6275 npx @modelcontextprotocol/inspector http://localhost:8080/sse
 ```
 
+## Test with cURL (manual MCP session)
 
-## Probar con cURL
-
-
-También puedes probar manualmente con cURL:
-
-Para probar manualmente con cURL se recomienda cambiar a sse en lugar de http streamable.
-De probar con sse:
+You can also test the server manually with cURL using an SSE session.
 
 ```bash
-# 1. Crear una sesión
+# 1. Create an SSE session
 curl http://localhost:8080/api/sse
 
-//Esta llamada te dará un SESSION_ID, usalo en las posteriores requests
+# This call returns a SESSION_ID — use it for subsequent requests
 
-
-
-# 2. Inicializar la sesión MCP
+# 2. Initialize the MCP session
 curl -X POST "http://localhost:8080/message?sessionId=${SESSION_ID}" \
  -H "Content-Type: application/json" \
  -d '{
-   "jsonrpc": "2.0",
-   "method": "initialize",
-   "params": {
-     "protocolVersion": "2024-11-05",
-     "capabilities": {},
-     "clientInfo": {"name": "test", "version": "1.0.0"}
-   },
-   "id": 1
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+       "protocolVersion": "2024-11-05",
+       "capabilities": {},
+       "clientInfo": {"name": "test", "version": "1.0.0"}
+    },
+    "id": 1
  }'
 
-
-# 2.1 Notifica la sesión MCP iniciada
-
- curl -X POST "http://localhost:8080/message?sessionId=${SESSION_ID}" \
+# 2.1 Notify that the MCP session is initialized
+curl -X POST "http://localhost:8080/message?sessionId=${SESSION_ID}" \
  -H "Content-Type: application/json" \
  -d '{
-   "jsonrpc": "2.0",
-   "method": "notifications/initialized",
-   "id": 1
+    "jsonrpc": "2.0",
+    "method": "notifications/initialized",
+    "id": 1
  }'
 
-
-# 3. Llamar una herramienta (ejemplo: get-users)
-curl -X POST "http://localhost:8080/api/message?sessionId=${SESSION_ID}" \
+# 3. Call a tool (example: get-users)
+curl -X POST "http://localhost:8080/message?sessionId=${SESSION_ID}" \
  -H "Content-Type: application/json" \
  -d '{
-   "jsonrpc": "2.0",
-   "method": "tools/call",
-   "params": {
-     "name": "get-users",
-     "arguments": {}
-   },
-   "id": 2
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+       "name": "get-users",
+       "arguments": {}
+    },
+    "id": 2
  }'
 ```
 
+## Integrate with your Copilot Agent
 
-## Integrar con tu Agente Copilot
+To use this server from Copilot:
 
+1. Add a server configuration in `.vscode/mcp.json`:
 
-Para usar este servidor desde Copilot.
+```json
+{
+   "servers": {
+      "My-MCP-Server": {
+         "url": "http://localhost:8080/mcp",
+         "type": "http"
+      }
+   },
+   "inputs": []
+}
+```
 
+2. Ensure your chatbot has MCP servers enabled in its settings.
+3. Open the tools pane in your chatbot — you should see the four tools available.
 
-1. Agrega la configuración del servidor en la carpeta .vscode crea el archivo mcp.json
-  ```json
+## Key Concepts
 
-    {
-        "servers": {
-            "{{Nombre-Del-Servisor}}": {
-                "url": "http://localhost:8080/mcp",
-                "type": "http"
-            }
-        },
-        "inputs": []
-    }
-
-  ```
-
-
-2. Asegurate que tu chatbot tenga habilitados los servidores MCP. (Revisar configuración en el icono del engranaje.)
-
-3. Abre el ícono de herramientas en tu chatbot.
-
-4. Deberías ver las 4 herramientas disponibles en tu copiloto.
-
-
-## Conceptos Clave Aprendidos
-
-
-### 1. Configuración del Servidor MCP
-
+### 1. MCP Server Configuration
 
 ```xml
 <mcp:server-config name="Server" serverName="mule-mcp-server" serverVersion="1.0.0">
-   <mcp:streamable-http-server-connection listenerConfig="HTTP-Listener-config"/>
+    <mcp:streamable-http-server-connection listenerConfig="HTTP-Listener-config"/>
 </mcp:server-config>
 ```
 
-
-### 2. Definición de una Herramienta
-
+### 2. Defining a Tool
 
 ```xml
-<mcp:tool-listener name="nombre-herramienta" config-ref="Server">
-   <mcp:description>Descripción de qué hace</mcp:description>
-   <mcp:parameters-schema><![CDATA[{
-       "$schema": "http://json-schema.org/draft-07/schema#",
-       "type": "object",
-       "properties": {
-           "param1": {
-               "type": "string",
-               "description": "Descripción del parámetro"
-           }
-       },
-       "required": ["param1"]
-   }]]></mcp:parameters-schema>
-   <mcp:responses>
-       <mcp:text-tool-response-content text="#[write(payload, 'application/json')]" />
-   </mcp:responses>
+<mcp:tool-listener name="tool-name" config-ref="Server">
+    <mcp:description>Tool description</mcp:description>
+    <mcp:parameters-schema><![CDATA[{
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+                "param1": {
+                      "type": "string",
+                      "description": "Parameter description"
+                }
+          },
+          "required": ["param1"]
+    }]]></mcp:parameters-schema>
+    <mcp:responses>
+          <mcp:text-tool-response-content text="#[payload.^raw]" />
+    </mcp:responses>
 </mcp:tool-listener>
 ```
 
+### 3. Accessing Parameters
 
-### 3. Acceso a Parámetros
-
-
-Los parámetros enviados por el cliente MCP están disponibles en el `payload`:
-
+Parameters sent by the MCP client are available on the `payload`:
 
 ```xml
 <set-variable variableName="userId" value="#[payload.userId]" />
 ```
 
+### 4. Response Format
 
-### 4. Formato de Respuesta
-
-
-Es crítico configurar `<mcp:responses>` con `<mcp:text-tool-response-content>`:
-
+Make sure each tool includes a `<mcp:responses>` block with `<mcp:text-tool-response-content>`:
 
 ```xml
 <mcp:responses>
-   <mcp:text-tool-response-content text="#[write(payload, 'application/json')]" />
+    <mcp:text-tool-response-content text="#[payload.^raw]" />
 </mcp:responses>
 ```
 
+### 5. MCP SSE Communication Flow
 
-### 5. Flujo de Comunicación MCP SSE
-
-
-1. Cliente conecta vía SSE: `GET /api/sse`
+1. Client connects via SSE: `GET /api/sse`
 2. Handshake: `initialize` request
-3. Descubrimiento: `tools/list` request
-4. Ejecución: `tools/call` con parámetros
-5. Respuesta: Servidor devuelve resultado en formato MCP
+3. Discovery: `tools/list` request
+4. Execution: `tools/call` with parameters
+5. Response: Server returns the result in MCP format
 
-
-## Estructura del Proyecto
-
+## Project Structure
 
 ```
 mcp-server-mulesoft/
-├── pom.xml                           # Configuración Maven
-├── mule-artifact.json                # Metadata de la aplicación Mule
+├── pom.xml                       # Maven configuration
+├── mule-artifact.json            # Mule application metadata
 ├── src/
 │   └── main/
 │       ├── mule/
-│       │   └── mcp-server-mulesoft.xml   # Configuración de flows y herramientas
+│       │   └── mcp-server-mulesoft.xml   # Flows & tool definitions
 │       └── resources/
-│           └── log4j2.xml            # Configuración de logging
-└── README.md                         # Este archivo
+│           └── log4j2.xml        # Logging configuration
+└── README.md                     # This file
 ```
-
 
 ## Troubleshooting
 
+### Empty responses ("content: []")
 
-### Error: "content: []" vacío en respuestas
+Cause: `<mcp:responses>` is not configured correctly.
 
+Fix: Ensure every tool includes:
 
-**Causa**: `<mcp:responses>` no está configurado correctamente.
-
-
-**Solución**: Asegúrate de que todas las herramientas tengan:
 ```xml
 <mcp:responses>
-   <mcp:text-tool-response-content text="#[write(payload, 'application/json')]" />
+    <mcp:text-tool-response-content text="#[payload.^raw]" />
 </mcp:responses>
 ```
 
+### SSL/TLS errors when calling external APIs
 
-### Error SSL/TLS al conectar con APIs externas
+Cause: The JVM does not trust the external API certificate.
 
+Fix (development only):
 
-**Causa**: El JVM no confía en el certificado de la API externa.
-
-
-**Solución**: Para desarrollo, usa:
 ```xml
 <tls:context>
-   <tls:trust-store insecure="true"/>
+    <tls:trust-store insecure="true"/>
 </tls:context>
 ```
 
+Note: In production add the certificates to the Java truststore.
 
-**Nota**: En producción, agrega los certificados al truststore de Java.
+### "Invalid input" in inputSchema
 
+Cause: Missing `$schema` field in the JSON Schema.
 
-### Error: "Invalid input" en inputSchema
+Fix: Include the `$schema` declaration:
 
-
-**Causa**: Falta el campo `$schema` en el JSON Schema.
-
-
-**Solución**: Todas las herramientas deben incluir:
 ```json
 {
    "$schema": "http://json-schema.org/draft-07/schema#",
@@ -360,34 +289,30 @@ mcp-server-mulesoft/
 }
 ```
 
+### Inspector port 6274 already in use
 
-### Puerto 6274 en uso al ejecutar Inspector
+Cause: Another instance of the Inspector is running.
 
+Fix:
 
-**Causa**: Ya hay una instancia del Inspector corriendo.
+- Stop the running process with Ctrl+C in its terminal, or
+- Kill the process manually and restart the Inspector:
 
-
-**Solución**:
-- Detener el proceso usando Ctrl+C en la terminal donde se ejecutó el comando.
-- De no tener la terminal a la mano puedes hacer:
 ```bash
 kill $(lsof -ti:6274)
-# O usar otro puerto
+# Or run Inspector on another port
 PORT=6275 npx @modelcontextprotocol/inspector http://localhost:8080/api/sse
 ```
 
-
-## Recursos Adicionales
-
+## Additional Resources
 
 - [MCP Specification](https://spec.modelcontextprotocol.io/)
 - [MuleSoft MCP Connector Documentation](https://docs.mulesoft.com/)
 - [JSONPlaceholder API](https://jsonplaceholder.typicode.com/)
 - [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
 
+## License
 
-## Licencia
+This is an educational open-source project. Feel free to use, modify, and distribute.
 
-
-Este es un proyecto educativo de código abierto. Siéntete libre de usar, modificar y distribuir.
-
+```
