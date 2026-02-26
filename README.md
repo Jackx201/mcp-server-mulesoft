@@ -180,7 +180,7 @@ curl -X POST "http://localhost:8080/message?sessionId=${SESSION_ID}" \
 
 
 # 3. Llamar una herramienta (ejemplo: get-users)
-curl -X POST "http://localhost:8080/api/message?sessionId=${SESSION_ID}" \
+curl -X POST "http://localhost:8080/message?sessionId=${SESSION_ID}" \
  -H "Content-Type: application/json" \
  -d '{
    "jsonrpc": "2.0",
@@ -254,7 +254,7 @@ Para usar este servidor desde Copilot.
        "required": ["param1"]
    }]]></mcp:parameters-schema>
    <mcp:responses>
-       <mcp:text-tool-response-content text="#[write(payload, 'application/json')]" />
+       <mcp:text-tool-response-content text="#[payload.^raw)]" />
    </mcp:responses>
 </mcp:tool-listener>
 ```
@@ -279,7 +279,7 @@ Es crítico configurar `<mcp:responses>` con `<mcp:text-tool-response-content>`:
 
 ```xml
 <mcp:responses>
-   <mcp:text-tool-response-content text="#[write(payload, 'application/json')]" />
+   <mcp:text-tool-response-content text="#[payload.^raw)]" />
 </mcp:responses>
 ```
 
@@ -323,7 +323,7 @@ mcp-server-mulesoft/
 **Solución**: Asegúrate de que todas las herramientas tengan:
 ```xml
 <mcp:responses>
-   <mcp:text-tool-response-content text="#[write(payload, 'application/json')]" />
+   <mcp:text-tool-response-content text="#[payload.^raw]" />
 </mcp:responses>
 ```
 
@@ -390,4 +390,35 @@ PORT=6275 npx @modelcontextprotocol/inspector http://localhost:8080/api/sse
 
 
 Este es un proyecto educativo de código abierto. Siéntete libre de usar, modificar y distribuir.
+
+
+# Demo.
+
+Una vez desplegado y conectado tu servidor MCP a tu agente.
+
+<img width="1335" height="426" alt="image" src="https://github.com/user-attachments/assets/c3d10799-a061-421d-a53a-fa7a48579b45" />
+
+
+Puedes preguntarle a tu agente que te de una lista de todos los usuarios de JSON Placeholder. Al ser una API pública es posible que quiera hacer fetch directo, de ser ese el caso puedes especificar que use la herramienta get-users programada en nuestro servidor MCP local.
+
+
+<img width="1539" height="448" alt="image" src="https://github.com/user-attachments/assets/03bc8c6d-0b54-4249-bb9a-05cbbebe19d3" />
+
+Al permitirle correr la herramienta, debería regresarte la lista de usuarios:
+
+<img width="1560" height="652" alt="image" src="https://github.com/user-attachments/assets/2c790092-66ef-411b-9938-aaef003c83d2" />
+
+Los datos que te de el agente en su respuesta dependrá enteramente del prompt que le proporciones. Puedes ver el resultado completo al dar click en el diálogo donde ejecutó la herramienta. Donde encontrarás la respuesta en crudo con todos los datos que obtuvo el agente al consumir tu herramienta.
+
+<img width="1540" height="1051" alt="image" src="https://github.com/user-attachments/assets/0e07bb49-c84a-4d07-ab2a-20f476a096f2" />
+
+De igual forma el agente puede ejecutar herramientas con parámetros de entrada.
+
+<img width="1559" height="504" alt="image" src="https://github.com/user-attachments/assets/3a3f7a2e-3043-43cf-a7fd-44c449fa8b94" />
+
+Siempre y cuando esté dentro del alcance de las herramientas programadas dentro del servidor. Ampliando enormemente el intercambio dinámico de información entre el agente y los sistemas que consuma mediante el servidor MCP.
+
+<img width="1574" height="750" alt="image" src="https://github.com/user-attachments/assets/63ead2bf-72e6-4828-a606-380abc96b2df" />
+
+Aplica estos principios en tu propio servidor MCP de Mulesoft y desarrolla integraciones a tu gusto y necesidades. Es tan sencillo como reemplazar la API de JSON Placeholder con la API o servicio que necesites, siempre y cuando hagas los ajustes necesarios dependiendo de la API que vayas a implementar.
 
