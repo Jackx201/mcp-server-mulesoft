@@ -315,4 +315,29 @@ PORT=6275 npx @modelcontextprotocol/inspector http://localhost:8080/api/sse
 
 This is an educational open-source project. Feel free to use, modify, and distribute.
 
-```
+# Demo
+
+Once your MCP server is deployed and connected to your agent.
+
+<img width="1317" height="458" alt="image" src="https://github.com/user-attachments/assets/1a6b80ce-c7c5-468e-a6d8-0ad6f0914eb9" />
+
+You can ask your agent to provide a list of all users from JSON Placeholder. Since it is a public API, the agent might try to perform a direct fetch; if that happens, you can specify that it should use the get-users tool programmed in our local MCP server.
+
+
+<img width="1575" height="689" alt="image" src="https://github.com/user-attachments/assets/310f41ef-7cbd-400f-97c6-67c31d3acea4" />
+
+
+The data provided by the agent in its response will depend entirely on the prompt you provide. You can view the full result by clicking on the dialog where the tool was executed, where you will find the raw response containing all the data the agent obtained by consuming your tool.
+
+<img width="1561" height="1085" alt="image" src="https://github.com/user-attachments/assets/8f4a8d19-34b9-4768-819a-ef867988aa7b" />
+
+Likewise, the agent is capable of invoking tools that require specific input parameters.
+
+<img width="1547" height="388" alt="image" src="https://github.com/user-attachments/assets/0db61bd4-a386-4e1c-92fb-23db2344ead6" />
+
+Provided it is within the scope of the server's programmed tools, it significantly enhances the dynamic information exchange between the agent and the systems accessed via the MCP server.
+
+<img width="1558" height="498" alt="image" src="https://github.com/user-attachments/assets/3c787d3e-8df7-46d2-9bdc-84be8f992965" />
+
+Apply these principles to your own MuleSoft MCP server to build your own custom integrations. Simply swap out the JSON Placeholder API for any service you need, making sure to adjust the configuration for the specific API you are implementing
+
